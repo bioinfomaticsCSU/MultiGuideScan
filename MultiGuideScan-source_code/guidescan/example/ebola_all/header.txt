@@ -1,0 +1,6 @@
+@HD	VN:1.0	SO:coordinate
+@SQ	SN:chrE	LN:18959
+@CO	prepared with iGuide software
+@CO	contains info about guideRNAs and their off-targets
+@CO	arguments of the run:
+@CO	{'maxoffpos': 10, 'altpam': ['NAG'], 'offdist': 3, 'name': 'ebola_all', 'pampos': 'end', 'gnupath': '', 'length': 20, 'threads': 1, 'genome': [('chrE', 18959)], 'fasta': 'chromFa/ebola', 'minchrlen': 10000, 'chrom': [], 'pam': 'NGG', 'sim': 2, 'maxoffcount': 1000}
