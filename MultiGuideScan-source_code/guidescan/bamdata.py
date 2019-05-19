@@ -41,7 +41,7 @@ from multiprocessing import Pool,Process,Queue
 #########################
 
 def trie_to_sam(index, kmers_trie, keysfile, samfile, args, offdist, maxoffcount,
-                thread, n, parts):
+                process, n, parts):
     """Produce SAM file with guideRNAs and info about their off-targets.
 
     Convention: Off-target info is stored in the optional field with flag 'of'
@@ -78,9 +78,9 @@ def trie_to_sam(index, kmers_trie, keysfile, samfile, args, offdist, maxoffcount
     maxoffcount: store at most this many off-targets for a guideRNA;
                  ignore if offdist is -1;
                  use this value instead of what args contains
-    thread: thread number; to distinguish in output from different threads
+    process: process number; to distinguish in output from different processes
     """
-    util.print_log('process%s:trie_to_sam' % thread)
+    util.print_log('process%s:trie_to_sam' % process)
     
     util.check_file_exists(keysfile)
     f = gzip.open(keysfile) if keysfile.endswith('.gz') else open(keysfile)
@@ -109,7 +109,7 @@ def trie_to_sam(index, kmers_trie, keysfile, samfile, args, offdist, maxoffcount
             index_seq1 = guides.generate_four(i, n)
             mismatch = guides.four_compare(index_seq, index_seq1, n)
             mismatches.append(mismatch)
-    # util.print_log('process%s:mismatch done...' % thread)
+    # util.print_log('process%s:mismatch done...' % process)
     for line in f:
         
         guide = line.split()[0]
@@ -119,19 +119,19 @@ def trie_to_sam(index, kmers_trie, keysfile, samfile, args, offdist, maxoffcount
         
         # QNAME
         samline = guide
-#        samline = '%st%s' % (count, thread)
+#        samline = '%st%s' % (count, process)
         if not kmers_trie[index].has_key(kmer2):
-            print 'thread %s warning: %s is not in trie %s, skip' \
-                  % (thread, kmer2, index)
+            print 'process %s warning: %s is not in trie %s, skip' \
+                  % (process, kmer2, index)
             continue
         arr = kmers_trie[index][kmer2]
         if arr[0] != 0:
-            print 'thread %s warning: %s is not a good guideRNA according' \
-                  ' to label in trie %s, skip' % (thread, kmer2, index)
+            print 'process %s warning: %s is not a good guideRNA according' \
+                  ' to label in trie %s, skip' % (process, kmer2, index)
             continue
         if len(arr) > 2:
-            print 'thread %s warning: %s is stored with more than one' \
-                  ' coordinate in trie %s, skip' % (thread, kmer2, index)
+            print 'process %s warning: %s is stored with more than one' \
+                  ' coordinate in trie %s, skip' % (process, kmer2, index)
             continue
         coord = arr[1]
         coord = util.map_int_to_coord(coord, genome)
@@ -181,9 +181,9 @@ def trie_to_sam(index, kmers_trie, keysfile, samfile, args, offdist, maxoffcount
         if (currenttime - lasttime).seconds > 1200 \
            or ((currenttime - lasttime).seconds > 60
                and (lasttime - starttime).seconds < 600):
-            util.print_log('thread %s: %s guides processed' % (thread, count))
+            util.print_log('process %s: %s guides processed' % (process, count))
             lasttime = currenttime
-    util.print_log('thread %s: total %s guides processed' % (thread, count))
+    util.print_log('process %s: total %s guides processed' % (process, count))
     s.flush()
     s.close()
     f.close()
@@ -277,7 +277,7 @@ def process_pool(q, kmers_trie_list, args, offdist, maxoffcount, process, n, par
                 break
 
 def produce_bam_custom(kmers_trie, name, label, guides_filename, args,
-                       offdist, maxoffcount, threads, n, parts):
+                       offdist, maxoffcount, processes, n, parts):
     """Produce BAM file with guideRNA database.
 
     Run after all files and trie were generated
@@ -307,7 +307,7 @@ def produce_bam_custom(kmers_trie, name, label, guides_filename, args,
              when running genome-wide analysis on mammalian genome
     maxoffcount: store at most this many off-targets for a guideRNA;
                  ignore if offdist is -1
-    threads: int, how many threads to use in parallel; do not specify more
+    processes: int, how many processes to use in parallel; do not specify more
              than available in the system; currently not implemented, use 1
     """
     guidesfiles = []
@@ -354,7 +354,7 @@ def produce_bam_custom(kmers_trie, name, label, guides_filename, args,
             task = (guides_filename[i].name, samfiles[i].name, i)
             all_task.put(task)
 
-        for i in range(threads):
+        for i in range(processes):
             p = Process(target=process_pool, args=(all_task, kmers_trie, args, offdist, maxoffcount, i, n, parts))
             p.start()
             process_list.append(p)
@@ -372,7 +372,7 @@ def produce_bam_custom(kmers_trie, name, label, guides_filename, args,
             task = (guides_filename[i], samfiles[i], i)
             all_task.put(task)
 
-        for i in range(threads):
+        for i in range(processes):
             p = Process(target=process_pool, args=(all_task, kmers_trie, args, offdist, maxoffcount, i, n, parts))
             p.start()
             process_list.append(p)
@@ -388,8 +388,8 @@ def produce_bam_custom(kmers_trie, name, label, guides_filename, args,
     # util.print_log('store BAM in these files: %s'
     #                % (', '.join([basename(f.name) for f in bamfiles])))
 
-    pool = Pool(threads)
-    util.print_log('poolSize %s...' % threads)
+    pool = Pool(processes)
+    util.print_log('poolSize %s...' % processes)
     index=False
     for i in range(parts):
         pool.apply_async(sam_to_bam,(samfiles[i], bamfiles[i], index,))
@@ -483,7 +483,7 @@ def produce_bams_main(kmers_trie, name):
                        guides_filename=guides_filenames,
                        args=args, offdist=-1,  # -1 for no off-targets
                        maxoffcount=args['maxoffcount'],
-                       threads=args['threads'],
+                       processes=args['processes'],
                        n = n,
                        parts=parts)
     util.print_log('done')
@@ -498,7 +498,7 @@ def produce_bams_main(kmers_trie, name):
                            guides_filename=guides_filenames,
                            args=args, offdist=args['offdist'],
                            maxoffcount=args['maxoffcount'],
-                           threads=args['threads'],
+                           processes=args['processes'],
                            n = n,
                            parts=parts)
         util.print_log('done')
@@ -539,8 +539,8 @@ def main():
                    help='maximum number of off-targets to store for'
                         ' a guideRNA in a resulting BAM library;'
                         ' ignore if OFFDIST is -1')
-    p.add_argument('-t', dest='threads', type=int, default=1,
-                   help='how many threads to use; do not specify more'
+    p.add_argument('-t', dest='processes', type=int, default=1,
+                   help='how many processes to use; do not specify more'
                         ' than you have on your system;'
                         ' currently not implemented')
     args = p.parse_args()
@@ -573,7 +573,7 @@ def main():
                        args=args,
                        offdist=sam_args_dict['offdist'],
                        maxoffcount=sam_args_dict['maxoffcount'],
-                       threads=sam_args_dict['threads'],
+                       processes=sam_args_dict['processes'],
                        n = n,
                        parts=parts)
 

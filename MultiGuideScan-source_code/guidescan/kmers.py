@@ -76,6 +76,8 @@ def extract_kmers(name, fasta, length, pams, pampos, filename, chroms=[],
                 continues to the left
 
     Args:
+    name: project name, a folder with this name containing intermediate and 
+            final files in it
     fasta: iterator over Bio.SeqRecord.SeqRecord objects containing chromosomes
            as returned by load_fasta()
     length: length of guideRNAs (not including PAM sequence)
@@ -86,6 +88,8 @@ def extract_kmers(name, fasta, length, pams, pampos, filename, chroms=[],
     chroms: if not empty, inlcude in analysis only chromosomes with names
             from this list
     minchrlen: include in analysis only chromosomes not shorter than this
+    processes: how many processes to use; do not specify more than you have 
+                on your system
 
     Return:
     genome info in the format [(<chromosome name>, <chromosome length>)]
@@ -108,6 +112,8 @@ def extract_kmers(name, fasta, length, pams, pampos, filename, chroms=[],
         genome.append((chrom.id, len(chrom)))
         fasta_temp.append(chrom)
 
+    #Parallelize extracting kmers from the reference genome sequences by user defined 
+    #processes or the number of reference sequences
     parts = len(fasta_temp)
     if processes > parts:
         processes = parts
@@ -125,6 +131,7 @@ def extract_kmers(name, fasta, length, pams, pampos, filename, chroms=[],
     util.print_log('Waiting for all subprocesses done...')
     pool.close()
     pool.join()
+    util.print_log('all chromosomes processed')
     
     util.print_log('done, merge all kmers...')
     total_count = 0
@@ -138,8 +145,8 @@ def extract_kmers(name, fasta, length, pams, pampos, filename, chroms=[],
     for file in kmersfiles_temp:
         file.close()
     f.close()
-    util.print_log('all chromosomes processed')
     util.print_log('total k-mers written: %s' % total_count)
+
     return genome
 def extract_kmers_pool(chrom, length, pampos, pams_extend, pams_extend_rev, filename):
     
@@ -324,7 +331,7 @@ def extract_process_kmers(name):
     genome = extract_kmers(name=name, fasta=fasta, length=args['length'],
                            pams=allpams, pampos=args['pampos'],
                            filename=kmers_filename, chroms=args['chrom'],
-                           minchrlen=args['minchrlen'], processes=args['threads'])
+                           minchrlen=args['minchrlen'], processes=args['processes'])
     sys.stdout.write('genome: %s' % genome)
     util.print_log('save genome info')
     args['genome'] = genome

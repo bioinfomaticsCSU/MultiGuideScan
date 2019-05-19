@@ -112,10 +112,9 @@ def arg_parser():
                    help='path to gnu utilities, e.g. "/usr/local/bin";'
                         ' if empty, use system defaults;'
                         ' requires: cut, sort, uniq, shuf')
-    p.add_argument('-t', dest='threads', type=int, default=1,
-                   help='how many threads to use; do not specify more'
-                        ' than you have on your system;'
-                        ' currently not implemented')
+    p.add_argument('-t', dest='processes', type=int, default=1,
+                   help='how many processes to use; do not specify more'
+                        ' than you have on your system')
 
     args = p.parse_args()
 

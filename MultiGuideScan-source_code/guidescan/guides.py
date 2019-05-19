@@ -256,7 +256,7 @@ def build_kmers_trie(filename, genome, name, altpam=[], pampos='end', maxcount=1
         for f in kmersfiles1:
             f.close()
         temp[0].close()
-        util.print_log('write count1...')
+        # util.print_log('write count1...')
 
         kmersfiles2 = [gzip.open(kmers_filenames[i],'w') for i in range(mid, parts)]
         for line in temp[1]:
@@ -270,7 +270,7 @@ def build_kmers_trie(filename, genome, name, altpam=[], pampos='end', maxcount=1
         temp[1].close()
         for f in tempfiles:
             f.close()       
-        util.print_log('write count2...')
+        # util.print_log('write count2...')
     else:
         kmersfiles = [gzip.open(kmers_filenames[i],'w') for i in range(parts)]
         file = gzip.open(filename)
@@ -301,7 +301,8 @@ def build_kmers_trie(filename, genome, name, altpam=[], pampos='end', maxcount=1
         p.join()
 
     util.print_log('build tries done...')
-
+'''
+    util.print_log('merge goodkeys and badkeys in order to view easily...')
     if goodkeysfile:
         util.warn_file_exists(goodkeysfile)
         goodkeys = gzip.open(goodkeysfile, 'w')
@@ -325,8 +326,7 @@ def build_kmers_trie(filename, genome, name, altpam=[], pampos='end', maxcount=1
         f.close()
     goodkeys.close()
     badkeys.close()
-    
-    # kmers_trie_filenames = [kmers_trie_files[i].name for i in range(parts)]
+ '''  
     kmers_trie = load_restore_trie(name, kmers_trie_files, n, parts)
     for i in range(parts):
         if(os.path.exists(kmers_trie_files[i])):
@@ -381,7 +381,7 @@ def build_kmers_tries(kmers_filename, goodkeys_filename, badkeys_filename,
             if pampos == 'end' and any(kmer.endswith(p) for p in altpam):
                 label = 1
             kmers_trie[kmer2] = np.array([label, coord_int])
-            # count_added.value += 1
+            
             if label == 0:
                 goodkeys.write('%s\n' % kmer)
             if label != 0:
@@ -456,23 +456,23 @@ def filter_keys_trie(tempdir, kmers_trie, filenames1, filenames2, keysoutputfile
         p.join()  
     
     util.print_log('filter processes done...')
-    badkeys = gzip.open(nonCandidatekeysoutputfile, 'w')
-    for i in range(parts):
-        f = gzip.open(badkeysfiles[i])
-        for line in badkeysfiles[i]:
-            badkeys.write(line)
-        f.close()
-    badkeys.close()
+    # badkeys = gzip.open(nonCandidatekeysoutputfile, 'w')
+    # for i in range(parts):
+    #     f = gzip.open(badkeysfiles[i])
+    #     for line in badkeysfiles[i]:
+    #         badkeys.write(line)
+    #     f.close()
+    # badkeys.close()
 
     write_count = 0
-    goodkeys = gzip.open(keysoutputfile, 'w')
+    # goodkeys = gzip.open(keysoutputfile, 'w')
     for i in range(parts):
         f = gzip.open(filenames2[i])
         for line in f:
-            goodkeys.write(line)
+            # goodkeys.write(line)
             write_count += 1
         f.close()
-
+    # goodkeys.close()
     print '%s keys written' % write_count
 
 def process_pool_filter(queue, kmers_trie_list, n):
@@ -694,7 +694,7 @@ def analyze_guides(name):
                                   maxcount=args['maxoffpos'],goodkeysfile=goodkeysfile,
                                   badkeysfile=badkeysfile,tempdir=tempdir, 
                                   triekeys_v1_filenames=triekeys_v1_filenames, 
-                                  kmers_filenames=kmers_filenames, processes=args['threads'], n=n, parts=parts)
+                                  kmers_filenames=kmers_filenames, processes=args['processes'], n=n, parts=parts)
     util.print_log('done')
 
 
@@ -710,7 +710,7 @@ def analyze_guides(name):
     triekeys_v2_filenames = ['%s/keys%s.txt.gz' % (triekeys_v2_dir, i) for i in range(parts)]
 
     filter_keys_trie(tempdir, kmers_trie, triekeys_v1_filenames, triekeys_v2_filenames, keysoutputfile,
-                     nonCandidatekeysoutputfile, args['threads'], n, parts)
+                     nonCandidatekeysoutputfile, args['processes'], n, parts)
     util.print_log('done')
 
 
@@ -728,7 +728,7 @@ def analyze_guides(name):
                    % sim)
     keysfile = '%s/%s_triekeys_v2.txt.gz' % (name, name)
     util.print_log('read keys from %s' % keysfile)
-    filter_trie_mismatch_similarity(tempdir, name, kmers_trie, args['sim'] - 1, triekeys_v2_filenames, args['threads'], n, parts)
+    filter_trie_mismatch_similarity(tempdir, name, kmers_trie, args['sim'] - 1, triekeys_v2_filenames, args['processes'], n, parts)
     util.print_log('done')
 
 
@@ -743,7 +743,7 @@ def analyze_guides(name):
     guides_filenames = ['%s/%s.txt.gz' % (guides_dir, i) for i in range(parts)]
 
     filter_keys_trie(tempdir, kmers_trie, triekeys_v2_filenames, guides_filenames, keysoutputfile,
-                     nonCandidatekeysoutputfile, args['threads'], n, parts)
+                     nonCandidatekeysoutputfile, args['processes'], n, parts)
     util.print_log('done')
 
     badkeysfiles = ['%s/badkeys%s.txt.gz' % (tempdir, i) for i in range(parts)]

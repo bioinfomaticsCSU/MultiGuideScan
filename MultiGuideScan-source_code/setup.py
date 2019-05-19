@@ -17,7 +17,7 @@ setup(
     version = '1.0',
     author= 'Alexendar Perez & Yuri Pritykin',
     author_email= 'pereza1@mskcc.org & pritykiy@mskcc.org',
-    description = 'Tools to create and interface genome-wide CRISPR'
+    description = 'Tools to create genome-wide CRISPR'
                   ' guideRNA databases',
     long_description = long_description,
 
