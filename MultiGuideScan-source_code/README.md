@@ -15,8 +15,8 @@ Usage: guidescan_processer [options]   or  python processer.py [options]
     * -f            path to fasta file or folder with fasta files (will use all .fa, .fasta, .fa.gz, .fasta.gz files found in the folder)
     * -n            project name, use in all output (will produce a folder with this name containing intermediate and final files in it)
                     default:myguides
-    --minchr        minimum chromosome length to consider, chromosomes in input FASTA that are shorter than this will be excluded from analysis; 
-                    simple way to exclude scaffolds unassigned to known chromosomes etc.
+    --minchr        minimum chromosome length to consider, chromosomes in input FASTA that are shorter than this will be excluded from 
+    				analysis; simple way to exclude scaffolds unassigned to known chromosomes etc.
                     default:10000
       -c            list names of chromosomes (comma separated) that will be used in analysis, or name of file where this list is stored         
                     default: ''
@@ -24,17 +24,19 @@ Usage: guidescan_processer [options]   or  python processer.py [options]
                     default:20
       -p            PAM sequence
                     default:NGG
-      -a            alternative PAM sequences (separate multiple ones by commas), will not be used in primary guideRNAs, but will be considered in 
-                    off-targets; all PAM sequences should be mutually exclusive and of the same length
+      -a            alternative PAM sequences (separate multiple ones by commas), will not be used in primary guideRNAs, but will be considered
+      				in off-targets; all PAM sequences should be mutually exclusive and of the same length
                     default:NAG
     --pampos        position of PAM with respect to guideRNA
                     default:end
                     choices:start, end    
-      -s            minimum mismatch similarity between guideRNAs; a candidate guideRNA (with primary PAM) should not have alternative occurences in the 
-                    genome (with any PAM) with less than this many mismatches (not including PAM)
+      -s            minimum mismatch similarity between guideRNAs; a candidate guideRNA (with primary PAM) should not have alternative occurences
+      				in the genome (with any PAM) with less than this many mismatches (not including PAM)
                     default:2  
       -d            maximum distance to consider from guideRNA to its off-target; off-target is an alternative occurrence (with any PAM) of this
-                    guideRNA in the genome at edit distance at most this number (including PAM); currently values larger than 4 are infeasible for large (e.g., mammalian) genomes, and value 3 will take long time to compute; use -1 if do not want any off-target info in resulting database (can add it later using bamdata)
+                    guideRNA in the genome at edit distance at most this number (including PAM); currently values larger than 4 are infeasible 
+                    for large (e.g., mammalian) genomes, and value 3 will take long time to compute; use -1 if do not want any off-target info in 
+                    resulting database (can add it later using bamdata)
                     default:3
       -k            a number greater than offdist used for preprocessed data (the length of key for classifying guide RNAs)
                     default:4
@@ -49,5 +51,7 @@ Usage: guidescan_processer [options]   or  python processer.py [options]
 ```
 
 For example:
+
     python processer.py -f ./chromosomes -n sacCer3_all -d 3 -k 4 -t 10 >logs3/log-guidescan-processer-sacCer3-d3-k4-10.txt 2>&1
+
     python processer.py -f ./chromosomes -n sacCer3_all -d 4 -k 5 -t 32 >logs3/log-guidescan-processer-sacCer3-d4-k5-32.txt 2>&1
