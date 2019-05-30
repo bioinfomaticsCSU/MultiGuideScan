@@ -15,8 +15,8 @@ setup(
     # TODO: specify dependencies
     name = 'MultiGuidescan',
     version = '1.0',
-    author= 'Alexendar Perez & Yuri Pritykin',
-    author_email= 'pereza1@mskcc.org & pritykiy@mskcc.org',
+    author= 'Tao Li & Jianxin Wang & Alexendar Perez & Yuri Pritykin',
+    author_email= 'litao_csu@csu.edu.cn & jxwang@mail.csu.edu.cn & pereza1@mskcc.org & pritykiy@mskcc.org',
     description = 'Tools to create genome-wide CRISPR'
                   ' guideRNA databases',
     long_description = long_description,

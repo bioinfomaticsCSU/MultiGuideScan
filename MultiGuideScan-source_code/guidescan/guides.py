@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-__author__ = 'Alexendar Perez & Yuri Pritykin'
+__author__ = 'Tao Li & Alexendar Perez & Yuri Pritykin'
 
 #####################
 #                   #
@@ -60,6 +60,7 @@ def get_num(kmer, n):
         if c == 'G': ret += 2
         if c == 'T': ret += 3
     return ret
+    
 #Converting decimal number to quaternary string
 def generate_four(num, n):
     ret = ''
@@ -72,6 +73,7 @@ def generate_four(num, n):
         num //= 4
     return ret
 
+# caculate the Hamming distance between s1 and s2
 def four_compare(s1, s2, n):
     count = 0
     for i in range(0, n):

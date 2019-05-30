@@ -1,4 +1,4 @@
-__author__ = 'Alexendar Perez & Yuri Pritykin'
+__author__ = 'Tao Li & Alexendar Perez & Yuri Pritykin'
 
 #####################
 #                   #

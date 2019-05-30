@@ -1,4 +1,4 @@
-__author__ = 'Alexendar Perez & Yuri Pritykin'
+__author__ = 'Tao Li & Alexendar Perez & Yuri Pritykin'
 
 #####################
 #                   #
@@ -64,6 +64,7 @@ def trie_to_sam(index, kmers_trie, keysfile, samfile, args, offdist, maxoffcount
     0-based.
 
     Args:
+    index: the index of keysfile
     kmers_trie: trie.trie object with all guideRNAs as produced by
                 guides.analyze_guides()
     keysfile: name of file with all k-mers that are considered good
@@ -79,6 +80,8 @@ def trie_to_sam(index, kmers_trie, keysfile, samfile, args, offdist, maxoffcount
                  ignore if offdist is -1;
                  use this value instead of what args contains
     process: process number; to distinguish in output from different processes
+    n: the number of prefix of kmers for preprocessing
+    parts: the number of parts of classified kmers
     """
     util.print_log('process%s:trie_to_sam' % process)
     

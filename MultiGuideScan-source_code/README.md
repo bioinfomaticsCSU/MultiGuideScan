@@ -1,72 +1,53 @@
 Full CRISPR guideRNA analysis pipeline.
 
-Ensure the following dependencies are present
+To accommodate different CRISPR endonucleases with different specificity requirements, MultiGuideScan allows users to supply the reference genome sequences and define target sequences by setting specific parameters, such as a protospacer adjacent motif (PAM), the PAM positions relative to target sequences, the length of guide RNAs, the Hamming distance *M* (the minimum distance among guide RNAs to ensure that every guide RNA has a unique targeting site in the genome) and the Hamming distance *Q* (the maximum distance considered between the guide RNAs and corresponding off-target sequences). Non-canonical PAM sequences can also be supplied and be helpful for off-target cutting, because they can be recognized and cut by the CRISPR protein with a certain efficiency.
 
-    :::system
-        samtools 1.3.1
-        easy_install
-        coreutils (shuf)
-        rename
-        python 2.7
-        biopython>=1.66
-        pysam==0.8.3
-        pyfaidx==0.4.7.1
-        bx-python==0.7.3
-        
-        for Rule Set 2 on-target cutting efficiency scores (this must be installed by user: https://pypi.python.org/pypi/scikit-learn/0.16.1)
-        sklearn==0.16.1
+The datasets can be found from [the UCSC genome browser](http://hgdownload.soe.ucsc.edu).
 
-To install, run 
+Usage
+----
 
-    :::system
-        python setup.py install
+```
+Usage: guidescan_processer [options]   or  python processer.py [options]
+  Options:
+      -h            default: false
+  
+    * -f            path to fasta file or folder with fasta files (will use all .fa, .fasta, .fa.gz, .fasta.gz files found in the folder)
+    * -n            project name, use in all output (will produce a folder with this name containing intermediate and final files in it)
+                    default:myguides
+    --minchr        minimum chromosome length to consider, chromosomes in input FASTA that are shorter than this will be excluded from analysis; 
+                    simple way to exclude scaffolds unassigned to known chromosomes etc.
+                    default:10000
+      -c            list names of chromosomes (comma separated) that will be used in analysis, or name of file where this list is stored         
+                    default: ''
+      -l            desired length of guideRNAs (not including PAM)
+                    default:20
+      -p            PAM sequence
+                    default:NGG
+      -a            alternative PAM sequences (separate multiple ones by commas), will not be used in primary guideRNAs, but will be considered in 
+                    off-targets; all PAM sequences should be mutually exclusive and of the same length
+                    default:NAG
+    --pampos        position of PAM with respect to guideRNA
+                    default:end
+                    choices:start, end    
+      -s            minimum mismatch similarity between guideRNAs; a candidate guideRNA (with primary PAM) should not have alternative occurences in the 
+                    genome (with any PAM) with less than this many mismatches (not including PAM)
+                    default:2  
+      -d            maximum distance to consider from guideRNA to its off-target; off-target is an alternative occurrence (with any PAM) of this
+                    guideRNA in the genome at edit distance at most this number (including PAM); currently values larger than 4 are infeasible for large (e.g., mammalian) genomes, and value 3 will take long time to compute; use -1 if do not want any off-target info in resulting database (can add it later using bamdata)
+                    default:3
+      -k            a number greater than offdist used for preprocessed data (the length of key for classifying guide RNAs)
+                    default:4
+    --maxoffpos     maximum number of positions of k-mers to remember; for k-mer occurring multiple times in the genome  (such k-mers cannot be 
+                    guideRNAs, but their positions can be off-targets of guideRNAs) store at most this many arbitrary their occurrences in the genome
+                    default:10
+    --maxoffcount   maximum number of off-targets to store for a guideRNA in a resulting BAM library
+                    default:1000
+    --gnupath       path to gnu utilities, e.g. "/usr/local/bin"; if empty, use system defaults; requires: cut, sort, uniq, shuf
+    * -t            how many processes to use; do not specify more than you have on your system
+                    default:1
+```
 
-This will install binaries `guidescan_processer`, `guidescan_bamdata`, `guidescan_guidequery`, `guidescan_cutting_efficiency_processer`, `guidescan_cutting_efficiency_processer`.
-
-After installation, use
-
-    :::python
-        from guidescan import *
-
-in your python session to import all modules of the package, or use
-
-    :::python
-        from guidescan import guidequery
-
-to import a particular module and then use functions from the module
-
-    :::python
-        guidequery.query_bam()
-
-For local installation, run something like
-
-    :::system
-        python setup.py install --user
-
-and then make sure that the local directory with binaries (such as `$HOME/Library/Python/2.7/bin/`) is available in your PATH.
-
-
-For more info on full pipeline of guideRNA database construction from genomic sequences run
-
-    :::system
-        guidescan_processer -h
-
-For more info on guideRNA database construction with custom parameters using previously computed trie run
-
-    :::system
-        guidescan_bamdata -h
-
-For more info on accessing precomputed guideRNA database run
-
-    :::system
-        guidescan_guidequery -h
-
-For more info on computing cutting efficiency scores for Cas9 20mer gRNAs
-
-	:::system
-		guidescan_cutting_efficiency_processer -h
-
-For more info on computing cutting specificity scores for Cas9 20mer gRNAs
-
-	:::system
-		guidescan_cutting_specificity_processer -h
+For example:
+    python processer.py -f ./chromosomes -n sacCer3_all -d 3 -k 4 -t 10 >logs3/log-guidescan-processer-sacCer3-d3-k4-10.txt 2>&1
+    python processer.py -f ./chromosomes -n sacCer3_all -d 4 -k 5 -t 32 >logs3/log-guidescan-processer-sacCer3-d4-k5-32.txt 2>&1
